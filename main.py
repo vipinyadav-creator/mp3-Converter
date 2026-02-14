@@ -1,41 +1,60 @@
 import os
 import io
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2.credentials import Credentials
 from moviepy.editor import VideoFileClip
 
-# 1. Folder ki ID yahan daalein (Drive link se milti hai)
-INPUT_FOLDER = '1on5Irr1KN_IXvgNukLG9HpN1XRUX-xy2' 
+# Yahan apni Folder ID dalein
+FOLDER_ID = '1on5Irr1KN_IXvgNukLG9HpN1XRUX-xy2'
 
 def start_process():
-    # Login process
-    flow = InstalledAppFlow.from_client_secrets_file('credentials.json', ['https://www.googleapis.com/auth/drive'])
-   # Purani line hata dein aur ye likhein:
-creds = flow.run_local_server(port=0, open_browser=False)
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json')
+    else:
+        print("Error: token.json nahi mili!")
+        return
+
     service = build('drive', 'v3', credentials=creds)
 
-    # Video dhundna
-    results = service.files().list(q=f"'{INPUT_FOLDER}' in parents").execute()
-    for file in results.get('files', []):
-        if file['name'].endswith('.mp4'): # Agar video hai
-            print(f"Converting: {file['name']}")
-            
-            # DOWNLOAD VIDEO
-            request = service.files().get_media(fileId=file['id'])
-            with open("temp_video.mp4", "wb") as f:
-                f.write(request.execute())
+    # Video files dhoondna
+    results = service.files().list(
+        q=f"'{FOLDER_ID}' in parents and mimeType='video/mp4'",
+        fields="files(id, name)").execute()
+    items = results.get('files', [])
 
-            # CONVERT TO MP3
-            video = VideoFileClip("temp_video.mp4")
-            video.audio.write_audiofile("output.mp3")
-            video.close()
+    if not items:
+        print("Folder mein koi MP4 video nahi mili.")
+        return
 
-            # UPLOAD MP3
-            meta = {'name': file['name'].replace('.mp4', '.mp3'), 'parents': [INPUT_FOLDER]}
-            media = MediaFileUpload("output.mp3", mimetype='audio/mpeg')
-            service.files().create(body=meta, media_body=media).execute()
-            
-            print("Done!")
+    for item in items:
+        file_id = item['id']
+        file_name = item['name']
+        mp3_name = file_name.rsplit('.', 1)[0] + '.mp3'
 
-start_process()
+        print(f"Downloading: {file_name}")
+        
+        # Download
+        request = service.files().get_media(fileId=file_id)
+        with open(file_name, 'wb') as f:
+            f.write(request.execute())
+
+        # Convert to MP3
+        print(f"Converting to MP3...")
+        video = VideoFileClip(file_name)
+        video.audio.write_audiofile(mp3_name)
+        video.close()
+
+        # Upload MP3
+        print(f"Uploading: {mp3_name}")
+        from googleapiclient.http import MediaFileUpload
+        file_metadata = {'name': mp3_name, 'parents': [FOLDER_ID]}
+        media = MediaFileUpload(mp3_name, mimetype='audio/mp3')
+        service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+
+        # Safayi (PC se delete karna)
+        os.remove(file_name)
+        os.remove(mp3_name)
+        print(f"Done: {mp3_name} upload ho gayi!")
+
+if __name__ == '__main__':
+    start_process()
