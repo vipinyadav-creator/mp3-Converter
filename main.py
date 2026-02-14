@@ -2,7 +2,7 @@ import os
 import io
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
-from moviepy.editor import VideoFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
 
 # Yahan apni Folder ID dalein
 FOLDER_ID = '1on5Irr1KN_IXvgNukLG9HpN1XRUX-xy2'
@@ -58,3 +58,4 @@ def start_process():
 
 if __name__ == '__main__':
     start_process()
+
