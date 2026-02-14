@@ -2,7 +2,7 @@ name: Drive Video to MP3 Bot
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Yeh har 30 minute mein khud chalega
+    - cron: '*/5 * * * *' # Yeh har 30 minute mein khud chalega
   workflow_dispatch:      # Isse aap jab chahein "Run" button daba kar chala sakte hain
 
 jobs:
