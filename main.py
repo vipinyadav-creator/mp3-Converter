@@ -5,8 +5,8 @@ from moviepy.editor import VideoFileClip
 from googleapiclient.http import MediaFileUpload
 
 # --- Yahan apni IDs dalein ---
-VIDEO_FOLDER_ID = '1on5Irr1KN_IXvgNukLG9HpN1XRUX-xy2'
-MP3_FOLDER_ID = '1vF65MjK3dY8Y5dWFJkNh-kyt5hitXSNP'
+VIDEO_FOLDER_ID = '1B-8digPGU9ZGFFfc56FEIg-suUvHYSRZ'
+MP3_FOLDER_ID = '1YIbL1VXAn8lJSeqCVej_csoYWNgM236N'
 # -----------------------------
 
 def start_process():
@@ -68,3 +68,4 @@ def start_process():
 
 if __name__ == '__main__':
     start_process()
+
